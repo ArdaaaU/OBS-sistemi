@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <h2 class="text-2xl font-semibold text-gray-800">{{ student.name }}</h2>
+        <p class="text-sm text-gray-500 mt-1">Öğrenci Numarası: {{ student.username }}</p>
+    </div>
+    <div>
+        <button onclick="history.back()" class="text-indigo-600 hover:text-indigo-800 font-medium text-sm flex items-center gap-2">
+            <i class="fa-solid fa-arrow-left"></i> Geri Dön
+        </button>
+    </div>
+</div>
+
+<div class="bg-white shadow-sm border border-gray-100 rounded-xl overflow-hidden p-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-6">Kayıtlı Olduğu Dersler ve Durumu</h3>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Ders Kodu</th>
+                    <th class="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Ders Adı</th>
+                    <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Vize</th>
+                    <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Final</th>
+                    <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Proje</th>
+                    <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Sunum</th>
+                    <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Devamsızlık</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 bg-white">
+                {% for enrollment in enrollments %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{{ enrollment.course.code }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ enrollment.course.name }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold text-gray-700">{{ enrollment.midterm_grade or '-' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold text-gray-700">{{ enrollment.final_grade or '-' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold text-gray-700">{{ enrollment.project_grade or '-' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm font-semibold text-gray-700">{{ enrollment.presentation_grade or '-' }}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-center text-sm">
+                        <span class="font-semibold text-blue-600">
+                            {{ enrollment.absenteeism }} Saat
+                        </span>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="7" class="px-6 py-8 text-center text-sm text-gray-500 border border-dashed border-gray-300 rounded-lg m-4 block">
+                        Öğrencinin kayıtlı olduğu ders bulunmamaktadır.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

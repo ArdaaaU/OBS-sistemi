@@ -1,0 +1,111 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <div>
+        <h2 class="text-2xl font-semibold text-gray-800">{{ course.code }} - {{ course.name }}</h2>
+        <p class="text-sm text-gray-500 mt-1">Dersi alan öğrencilerin listesi ve not/yoklama ekranı.</p>
+    </div>
+    <div class="flex gap-3">
+        <button onclick="document.getElementById('attendance-section').classList.toggle('hidden')" class="bg-indigo-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-indigo-700 transition duration-200 ease-in-out shadow-sm hover:shadow-md flex items-center gap-2">
+            <i class="fa-solid fa-clipboard-user"></i> Yeni Yoklama Başlat
+        </button>
+        <a href="{{ url_for('academician_dashboard') }}" class="bg-gray-100 text-gray-700 px-4 py-2 rounded-lg font-medium text-sm hover:bg-gray-200 transition duration-200 ease-in-out flex items-center gap-2">
+            <i class="fa-solid fa-arrow-left"></i> Geri Dön
+        </a>
+    </div>
+</div>
+
+<!-- Yoklama Alma Bölümü (Başlangıçta Gizli) -->
+<div id="attendance-section" class="hidden mb-8 bg-indigo-50 border border-indigo-100 rounded-xl p-6 shadow-sm">
+    <h3 class="text-lg font-bold text-indigo-900 mb-4 flex items-center gap-2"><i class="fa-solid fa-clipboard-check"></i> Yeni Yoklama Paneli</h3>
+    <p class="text-sm text-indigo-700 mb-4">Aşağıdaki listeden öğrencilerin durumlarını seçip kaydedin. "Gelmedi" olarak işaretlenen öğrencilere otomatik olarak +3 saat devamsızlık eklenecektir.</p>
+    
+    <form method="POST" action="{{ url_for('take_attendance', course_id=course.id) }}">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
+            {% for enrollment in enrollments %}
+            <div class="bg-white border border-indigo-100 rounded-lg p-4 shadow-sm">
+                <div class="font-semibold text-gray-800 mb-1">{{ enrollment.student.name }}</div>
+                <div class="text-xs text-gray-500 mb-3">{{ enrollment.student.username }}</div>
+                <div class="flex gap-4">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="attendance_{{ enrollment.student.id }}" value="Geldi" class="text-green-600 focus:ring-green-500 w-4 h-4 cursor-pointer" required>
+                        <span class="text-sm font-medium text-green-700">Geldi</span>
+                    </label>
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="radio" name="attendance_{{ enrollment.student.id }}" value="Gelmedi" class="text-red-600 focus:ring-red-500 w-4 h-4 cursor-pointer">
+                        <span class="text-sm font-medium text-red-700">Gelmedi</span>
+                    </label>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-span-full text-sm text-indigo-600">Bu derse kayıtlı öğrenci bulunmuyor.</div>
+            {% endfor %}
+        </div>
+        {% if enrollments %}
+        <div class="flex justify-end">
+            <button type="submit" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg text-sm font-bold hover:bg-indigo-700 transition duration-200 ease-in-out shadow-sm hover:shadow-md">
+                Yoklamayı Kaydet
+            </button>
+        </div>
+        {% endif %}
+    </form>
+</div>
+
+<div class="bg-white shadow-sm hover:shadow-md transition duration-200 ease-in-out border border-gray-100 rounded-xl overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead class="bg-gray-50 border-b border-gray-200">
+                <tr>
+                    <th class="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Öğrenci Numarası</th>
+                    <th class="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Ad Soyad</th>
+                    <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Vize</th>
+                    <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Final</th>
+                    <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Proje</th>
+                    <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Sunum</th>
+                    <th class="px-6 py-3 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider">Toplam Devamsızlık</th>
+                    <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">İşlem</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100 bg-white">
+                {% for enrollment in enrollments %}
+                <tr class="hover:bg-gray-50 transition duration-150">
+                    <form method="POST" action="{{ url_for('update_grade', enrollment_id=enrollment.id) }}">
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-600">{{ enrollment.student.username }}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                            <a href="{{ url_for('student_detail', student_id=enrollment.student.id) }}" class="text-indigo-600 hover:text-indigo-800 flex items-center gap-2 transition">
+                                <div class="w-6 h-6 rounded-full bg-indigo-50 flex items-center justify-center text-[10px] text-indigo-600"><i class="fa-solid fa-user"></i></div>
+                                {{ enrollment.student.name }}
+                            </a>
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                            <input type="number" step="0.1" name="midterm" value="{{ enrollment.midterm_grade or '' }}" class="w-16 border border-gray-300 rounded-md text-center py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition">
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                            <input type="number" step="0.1" name="final" value="{{ enrollment.final_grade or '' }}" class="w-16 border border-gray-300 rounded-md text-center py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition">
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                            <input type="number" step="0.1" name="project" value="{{ enrollment.project_grade or '' }}" class="w-16 border border-gray-300 rounded-md text-center py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition">
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                            <input type="number" step="0.1" name="presentation" value="{{ enrollment.presentation_grade or '' }}" class="w-16 border border-gray-300 rounded-md text-center py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-500 transition">
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-center">
+                            <input type="number" name="absenteeism" value="{{ enrollment.absenteeism or '0' }}" class="w-16 border border-gray-300 rounded-md text-center py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-500 font-semibold text-blue-600 transition">
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <button type="submit" class="bg-[#1e293b] text-white px-4 py-2 rounded-md hover:bg-slate-700 transition duration-200 ease-in-out shadow-sm hover:shadow-md">Kaydet</button>
+                        </td>
+                    </form>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" class="px-6 py-8 text-center text-sm text-gray-500 border border-dashed border-gray-300 rounded-lg m-4 block">
+                        Bu derse kayıtlı öğrenci bulunmamaktadır.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

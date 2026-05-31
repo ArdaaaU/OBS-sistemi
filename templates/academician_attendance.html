@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <h2 class="text-2xl font-semibold text-gray-800">Kapsamlı Yoklama Paneli</h2>
+    <a href="{{ url_for('academician_dashboard') }}" class="px-4 py-2 bg-white border border-gray-300 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition shadow-sm">
+        <i class="fa-solid fa-arrow-left mr-2"></i>Derslere Dön
+    </a>
+</div>
+
+<!-- Üst Kısım: Öğrenci Devamsızlık Durumları Özeti -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+    <h3 class="text-lg font-semibold text-gray-800 mb-4"><i class="fa-solid fa-chart-bar mr-2 text-indigo-600"></i>Öğrenci Limit Durumları</h3>
+    
+    <!-- Filtreleme (Client Side) -->
+    <div class="mb-4">
+        <select id="courseFilter" onchange="filterSummary()" class="w-full md:w-64 border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition">
+            <option value="all">Tüm Dersler</option>
+            {% for course in courses %}
+            <option value="course-{{ course.id }}">{{ course.code }} - {{ course.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="summaryGrid">
+        {% for course in courses %}
+            {% for en in course.enrollments %}
+                <div class="summary-card course-{{ course.id }} p-4 border border-gray-200 rounded-xl bg-gray-50 flex items-center justify-between">
+                    <div>
+                        <div class="font-bold text-gray-800">{{ en.student.name }}</div>
+                        <div class="text-xs font-semibold text-indigo-600">{{ course.code }}</div>
+                    </div>
+                    <div class="text-right">
+                        {% set left = course.max_absenteeism - en.absenteeism %}
+                        <div class="text-2xl font-black {% if left <= 3 %}text-red-600{% else %}text-green-600{% endif %}">
+                            {{ left if left > 0 else 0 }} <span class="text-xs font-normal text-gray-500">Saat Kaldı</span>
+                        </div>
+                        <div class="text-[10px] text-gray-500">Max: {{ course.max_absenteeism }} | Kullanılan: {{ en.absenteeism }}</div>
+                    </div>
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Alt Kısım: Geçmiş Yoklamalar ve Düzenleme -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+    <div class="p-6 border-b border-gray-100">
+        <h3 class="text-lg font-semibold text-gray-800"><i class="fa-solid fa-clock-rotate-left mr-2 text-indigo-600"></i>Geçmiş Yoklama Kayıtları (Düzeltme)</h3>
+    </div>
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-gray-50 border-b border-gray-200 text-xs font-semibold text-gray-600 uppercase tracking-wider">
+                    <th class="py-4 px-6">Tarih</th>
+                    <th class="py-4 px-6">Ders</th>
+                    <th class="py-4 px-6">Öğrenci</th>
+                    <th class="py-4 px-6">Durum</th>
+                    <th class="py-4 px-6 text-right">İşlem (Düzelt)</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-100">
+                {% for log in logs %}
+                <tr class="hover:bg-gray-50 transition">
+                    <td class="py-3 px-6 text-sm text-gray-800 font-medium whitespace-nowrap">{{ log.date.strftime('%d.%m.%Y %H:%M') }}</td>
+                    <td class="py-3 px-6 text-sm text-gray-600">
+                        <span class="px-2 py-1 bg-indigo-50 text-indigo-700 text-xs font-semibold rounded">{{ log.course.code }}</span>
+                    </td>
+                    <td class="py-3 px-6 text-sm text-gray-800">{{ log.student.name }}</td>
+                    <td class="py-3 px-6">
+                        {% if log.status == 'Geldi' %}
+                            <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Geldi
+                            </span>
+                        {% else %}
+                            <span class="inline-flex items-center gap-1.5 py-1 px-3 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                                <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Gelmedi
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="py-3 px-6 text-right">
+                        <form method="POST" action="{{ url_for('edit_attendance', log_id=log.id) }}" class="flex items-center justify-end gap-2">
+                            <select name="status" class="border border-gray-300 rounded px-2 py-1 text-xs focus:ring-1 focus:ring-indigo-500 focus:outline-none">
+                                <option value="Geldi" {% if log.status == 'Geldi' %}selected{% endif %}>Geldi Yap</option>
+                                <option value="Gelmedi" {% if log.status == 'Gelmedi' %}selected{% endif %}>Gelmedi Yap</option>
+                            </select>
+                            <button type="submit" class="px-3 py-1 bg-indigo-600 text-white text-xs font-semibold rounded hover:bg-indigo-700 transition" onclick="return confirm('Yoklamayı değiştirmek devamsızlık saatini otonom olarak güncelleyecektir. Emin misiniz?');">
+                                Uygula
+                            </button>
+                        </form>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" class="py-8 text-center text-sm text-gray-500 bg-gray-50">Henüz hiçbir derste yoklama alınmamış.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<script>
+function filterSummary() {
+    const selected = document.getElementById('courseFilter').value;
+    const cards = document.querySelectorAll('.summary-card');
+    cards.forEach(card => {
+        if (selected === 'all' || card.classList.contains(selected)) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
+</script>
+{% endblock %}

@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OBS - Öğrenci Bilgi Sistemi</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { font-family: 'Inter', sans-serif; background-color: #f3f4f6; }
+        .sidebar { background-color: #f8fafc; border-right: 1px solid #e5e7eb; }
+        .active-menu { background-color: #e2e8f0; font-weight: 600; color: #1e293b; border-radius: 0.5rem; }
+        .menu-item { color: #475569; padding: 0.75rem 1rem; border-radius: 0.5rem; margin-bottom: 0.25rem; display: flex; align-items: center; gap: 0.75rem; transition: background-color 0.2s; }
+        .menu-item:hover { background-color: #f1f5f9; }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="text-gray-800 min-h-screen flex">
+    {% if current_user.is_authenticated %}
+    <!-- Sidebar -->
+    <aside class="sidebar w-64 flex-shrink-0 hidden md:flex flex-col min-h-screen">
+        <div class="p-6">
+            <h1 class="text-2xl font-bold text-gray-900 tracking-wider">OBS</h1>
+        </div>
+        <nav class="flex-1 px-4 py-2 space-y-1">
+            {% if current_user.role == 'student' %}
+                <a href="{{ url_for('student_dashboard') }}" class="menu-item {% if request.endpoint == 'student_dashboard' %}active-menu{% endif %}">
+                    <i class="fa-solid fa-book w-5 text-center"></i> Derslerim
+                </a>
+            {% elif current_user.role == 'academician' %}
+                <a href="{{ url_for('academician_dashboard') }}" class="menu-item {% if request.endpoint == 'academician_dashboard' %}active-menu{% endif %}">
+                    <i class="fa-solid fa-chalkboard-user w-5 text-center"></i> Derslerim
+                </a>
+                <a href="{{ url_for('academician_announcements') }}" class="menu-item {% if request.endpoint == 'academician_announcements' %}active-menu{% endif %}">
+                    <i class="fa-solid fa-bullhorn w-5 text-center"></i> Duyurularım
+                </a>
+                <a href="{{ url_for('academician_attendance') }}" class="menu-item {% if request.endpoint == 'academician_attendance' %}active-menu{% endif %}">
+                    <i class="fa-solid fa-clipboard-user w-5 text-center"></i> Yoklama Paneli
+                </a>
+            {% elif current_user.role == 'admin' %}
+                <a href="{{ url_for('admin_users') }}" class="menu-item {% if request.endpoint == 'admin_users' %}active-menu{% endif %}">
+                    <i class="fa-solid fa-users-gear w-5 text-center"></i> Sistem & Kullanıcılar
+                </a>
+            {% endif %}
+        </nav>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 flex flex-col min-h-screen overflow-hidden">
+        <!-- Top Bar -->
+        <header class="bg-white border-b border-gray-200 h-16 flex items-center justify-between px-6 lg:px-8">
+            <div class="flex items-center">
+                <!-- Mobile menu button (optional) -->
+                <button class="md:hidden text-gray-500 hover:text-gray-700 focus:outline-none">
+                    <i class="fa-solid fa-bars text-xl"></i>
+                </button>
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-sm font-semibold text-gray-700 text-right">
+                    <div class="font-bold">{{ current_user.name }}</div>
+                </div>
+                <div class="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 font-bold overflow-hidden">
+                    <i class="fa-solid fa-user"></i>
+                </div>
+                <a href="{{ url_for('logout') }}" class="ml-4 text-sm text-red-600 hover:text-red-800 font-medium transition" title="Çıkış Yap">
+                    <i class="fa-solid fa-right-from-bracket text-lg"></i>
+                </a>
+            </div>
+        </header>
+
+        <!-- Flash Messages & Content -->
+        <main class="flex-1 overflow-y-auto bg-gray-50 p-6 lg:p-8">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    <div class="mb-6 max-w-7xl mx-auto">
+                        {% for category, message in messages %}
+                            <div class="p-4 mb-4 text-sm rounded-lg {% if category == 'danger' %}bg-red-100 text-red-700 border border-red-200{% elif category == 'success' %}bg-green-100 text-green-700 border border-green-200{% else %}bg-blue-100 text-blue-700 border border-blue-200{% endif %}" role="alert">
+                                {{ message }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            {% endwith %}
+
+            <div class="max-w-7xl mx-auto">
+                {% block content %}{% endblock %}
+            </div>
+        </main>
+    </div>
+
+    {% else %}
+    <!-- For unauthenticated (Login Page) -->
+    <main class="flex-1 flex flex-col items-center justify-center w-full">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="mb-6 w-full max-w-md">
+                    {% for category, message in messages %}
+                        <div class="p-4 mb-4 text-sm rounded-lg {% if category == 'danger' %}bg-red-100 text-red-700 border border-red-200{% elif category == 'success' %}bg-green-100 text-green-700 border border-green-200{% else %}bg-blue-100 text-blue-700 border border-blue-200{% endif %}" role="alert">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+        {% block login_content %}{% endblock %}
+    </main>
+    {% endif %}
+</body>
+</html>

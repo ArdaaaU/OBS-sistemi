@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <h2 class="text-2xl font-semibold text-gray-800">Yönetim Paneli - Dashboard</h2>
+</div>
+
+<!-- Sistem İstatistikleri Özeti -->
+<div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6 mb-6">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="bg-blue-50 rounded-lg p-6 border border-blue-100 flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-blue-600 mb-1">Toplam Öğrenci</p>
+                <h3 class="text-3xl font-bold text-gray-900">{{ students|length }}</h3>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 text-xl">
+                <i class="fa-solid fa-user-graduate"></i>
+            </div>
+        </div>
+        <div class="bg-indigo-50 rounded-lg p-6 border border-indigo-100 flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-indigo-600 mb-1">Toplam Akademisyen</p>
+                <h3 class="text-3xl font-bold text-gray-900">{{ academicians|length }}</h3>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 text-xl">
+                <i class="fa-solid fa-chalkboard-user"></i>
+            </div>
+        </div>
+        <div class="bg-green-50 rounded-lg p-6 border border-green-100 flex items-center justify-between">
+            <div>
+                <p class="text-sm font-medium text-green-600 mb-1">Aktif Dersler</p>
+                <h3 class="text-3xl font-bold text-gray-900">{{ courses|length }}</h3>
+            </div>
+            <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-green-600 text-xl">
+                <i class="fa-solid fa-book-open"></i>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="bg-[#f0f9ff] rounded-xl shadow-sm border border-blue-100 p-6 max-w-4xl">
+    <h3 class="text-lg font-semibold text-gray-800 mb-6">Sistem İstatistikleri Grafiği</h3>
+    <div class="flex items-end justify-around h-64 border-b border-gray-300 pb-2">
+        <!-- Öğrenci Barı -->
+        <div class="flex flex-col items-center w-20">
+            <div class="w-full bg-blue-500 rounded-t-sm transition-all duration-500" style="height: {{ [((students|length * 10) + 20), 100]|min }}%;"></div>
+            <span class="text-xs text-gray-600 mt-3 font-semibold">Öğrenci</span>
+        </div>
+        <!-- Akademisyen Barı -->
+        <div class="flex flex-col items-center w-20">
+            <div class="w-full bg-indigo-500 rounded-t-sm transition-all duration-500" style="height: {{ [((academicians|length * 20) + 10), 100]|min }}%;"></div>
+            <span class="text-xs text-gray-600 mt-3 font-semibold text-center leading-tight">Akademisyen</span>
+        </div>
+        <!-- Aktif Dersler Barı -->
+        <div class="flex flex-col items-center w-20">
+            <div class="w-full bg-green-500 rounded-t-sm transition-all duration-500" style="height: {{ [((courses|length * 15) + 30), 100]|min }}%;"></div>
+            <span class="text-xs text-gray-600 mt-3 font-semibold text-center leading-tight">Aktif Ders</span>
+        </div>
+    </div>
+</div>
+{% endblock %}

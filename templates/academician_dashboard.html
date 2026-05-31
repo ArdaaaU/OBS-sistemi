@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="mb-6 flex justify-between items-center">
+    <h2 class="text-2xl font-semibold text-gray-800">Hoş Geldiniz, {{ current_user.name }}</h2>
+</div>
+
+<div class="flex flex-col gap-6">
+    <!-- Verilen Dersler -->
+    <div class="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
+        <h3 class="text-lg font-semibold text-gray-800 mb-6"><i class="fa-solid fa-chalkboard-user mr-2 text-indigo-600"></i>Verilen Dersler ve Yönetim</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for course in courses %}
+            <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden flex flex-col hover:shadow-md transition">
+                <div class="p-5 flex-1 bg-indigo-50 border-b border-gray-100">
+                    <h4 class="text-xl font-bold text-gray-900 mb-1">{{ course.name }}</h4>
+                    <p class="text-sm font-semibold text-indigo-600 mb-2">{{ course.code }}</p>
+                    <p class="text-xs text-gray-500"><i class="fa-solid fa-users mr-1"></i> {{ course.enrollments|length }} Kayıtlı Öğrenci</p>
+                </div>
+                <div class="p-4 bg-white flex flex-col gap-2">
+                    <a href="{{ url_for('academician_course', course_id=course.id) }}" class="flex items-center justify-center gap-2 w-full py-2 bg-[#1e293b] text-white text-sm font-semibold rounded-lg hover:bg-slate-700 transition shadow-sm">
+                        <i class="fa-solid fa-graduation-cap"></i> Not & Yoklama Girişi
+                    </a>
+                    <div class="flex gap-2">
+                        <button onclick="openAnnounceModal('{{ course.id }}', '{{ course.name }}')" class="flex-1 flex items-center justify-center gap-1 py-2 bg-indigo-100 text-indigo-700 text-xs font-semibold rounded-lg hover:bg-indigo-200 transition">
+                            <i class="fa-solid fa-bullhorn"></i> Duyuru
+                        </button>
+                        <a href="{{ url_for('export_report', course_id=course.id) }}" class="flex-1 flex items-center justify-center gap-1 py-2 bg-green-100 text-green-700 text-xs font-semibold rounded-lg hover:bg-green-200 transition">
+                            <i class="fa-solid fa-file-csv"></i> Excel/CSV
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-span-full p-8 text-center text-sm text-gray-500 border border-dashed border-gray-300 rounded-xl bg-gray-50">
+                Şu anda atandığınız bir ders bulunmamaktadır.
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Duyuru Ekleme Modalı -->
+<div id="announce-modal" class="fixed inset-0 bg-gray-900 bg-opacity-50 hidden flex items-center justify-center z-50 transition-opacity">
+    <div class="bg-white rounded-xl shadow-lg w-full max-w-lg p-6 relative">
+        <button onclick="closeAnnounceModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition">
+            <i class="fa-solid fa-xmark text-xl"></i>
+        </button>
+        <h3 class="text-xl font-bold text-gray-800 mb-1">Yeni Duyuru Paylaş</h3>
+        <p id="announce-course-name" class="text-sm font-semibold text-indigo-600 mb-6"></p>
+        
+        <form method="POST" action="{{ url_for('add_announcement') }}" class="space-y-4">
+            <input type="hidden" id="announce-course-id" name="course_id">
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Duyuru Başlığı</label>
+                <input type="text" name="title" required placeholder="Örn: Vize Sınavı Hakkında" class="w-full border border-gray-300 rounded-lg py-2.5 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 border-transparent transition">
+            </div>
+            <div>
+                <label class="block text-xs font-semibold text-gray-600 uppercase mb-1">Duyuru İçeriği</label>
+                <textarea name="content" required rows="4" placeholder="Duyuru detaylarını buraya yazın..." class="w-full border border-gray-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 border-transparent transition resize-none"></textarea>
+            </div>
+            <div class="flex justify-end gap-3 pt-4">
+                <button type="button" onclick="closeAnnounceModal()" class="px-5 py-2 bg-gray-100 text-gray-700 rounded-lg text-sm font-bold hover:bg-gray-200 transition">İptal</button>
+                <button type="submit" class="px-5 py-2 bg-indigo-600 text-white rounded-lg text-sm font-bold hover:bg-indigo-700 shadow-sm hover:shadow transition">Paylaş</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function openAnnounceModal(courseId, courseName) {
+        document.getElementById('announce-course-id').value = courseId;
+        document.getElementById('announce-course-name').innerText = courseName + " Dersi İçin";
+        document.getElementById('announce-modal').classList.remove('hidden');
+    }
+    function closeAnnounceModal() {
+        document.getElementById('announce-modal').classList.add('hidden');
+    }
+</script>
+{% endblock %}
